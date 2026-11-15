@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chia tiền cầu lông</title>
+<style>
+:root{--bg:#f4f7f5;--card:#fff;--ink:#14231b;--mute:#5d6e64;--line:#dfe7e2;--g:#0f7a4a;--g2:#e3f4ec;--warn:#b4531a;--warn2:#fdf0e6;--red:#b3261e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:16px 14px 60px}
+h1{font-size:22px;margin:6px 0 2px}
+.cols{display:grid;grid-template-columns:1fr;gap:0 16px;align-items:start}
+@media(min-width:900px){.cols{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.cols>.card:last-child{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}}
+.hd{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#auth{font-size:12.5px;color:var(--mute);display:flex;gap:8px;align-items:center}
+body.viewer .cols>.card:first-child{display:none}
+body.viewer .cols{grid-template-columns:1fr!important}
+body.viewer .cols>.card:last-child{position:static!important;max-height:none!important}
+body.viewer .sess .acts{display:none!important}
+body.viewer .sess .ck{pointer-events:none}
+.sub{color:var(--mute);margin:0 0 14px;font-size:13px}
+.banner{background:var(--warn2);color:var(--warn);border-radius:10px;padding:8px 12px;margin-bottom:12px;font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+h2{font-size:16px;margin:0 0 12px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(max-width:520px){.grid{grid-template-columns:1fr}}
+label{display:block;font-size:12px;font-weight:600;color:var(--mute);margin-bottom:4px}
+input[type=text],input[type=number],input[type=date],select{width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:9px;font:inherit;background:#fff;color:var(--ink)}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--g);outline-offset:1px}
+.row{display:flex;gap:8px;align-items:center}
+.step{display:flex}
+.step button{width:42px;flex:none;border:1px solid var(--line);background:#fff;font-size:20px;cursor:pointer;color:var(--ink)}
+.step button:first-child{border-radius:9px 0 0 9px}
+.step button:last-child{border-radius:0 9px 9px 0}
+.step input{border-radius:0;text-align:center;border-left:0;border-right:0}
+.full{grid-column:1/-1}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0}
+.btn{border:0;border-radius:10px;padding:11px 16px;font:inherit;font-weight:600;cursor:pointer}
+.btn.p{background:var(--g);color:#fff}
+.btn.s{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.btn.d{background:#fff;border:1px solid var(--line);color:var(--red)}
+.btn.d.arm{background:var(--red);color:#fff;border-color:var(--red)}
+.btn.sm{padding:6px 11px;font-size:13px}
+.result{background:var(--g2);border-radius:12px;padding:14px;margin-top:14px}
+.result .big{font-size:30px;font-weight:700;color:var(--g);line-height:1.1}
+.bk{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:13.5px;margin-top:10px}
+.bk span:nth-child(even){text-align:right;font-variant-numeric:tabular-nums}
+.bk .t{font-weight:700;border-top:1px solid rgba(15,122,74,.25);padding-top:4px;margin-top:2px}
+.hint{font-size:12px;color:var(--mute);margin-top:6px}
+.chk{display:flex;gap:8px;align-items:center;font-size:13.5px;margin-top:12px;font-weight:500;color:var(--ink)}
+.chk input{width:18px;height:18px;accent-color:var(--g)}
+.bar{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.top select{width:auto}
+.sess{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.sess h3{margin:0;font-size:15px}
+.sess .meta{color:var(--mute);font-size:13px;margin:2px 0 8px}
+.sess .nums{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:8px}
+.sess .nums b{font-size:17px;display:block}
+.sess .nums small{color:var(--mute);font-size:12px}
+.pp{border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 14px;font-size:14px;cursor:pointer;color:var(--ink)}
+.pp[aria-pressed=true]{background:var(--g);border-color:var(--g);color:#fff}
+.pp.sm{padding:4px 11px;font-size:13px}
+.acts{display:flex;gap:8px;margin-top:10px;justify-content:flex-end}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left}
+th{font-size:12px;color:var(--mute);font-weight:600}
+td.owe{color:var(--warn);font-weight:700}
+td.ok{color:var(--g);font-weight:700}
+.empty{color:var(--mute);text-align:center;padding:18px 0;font-size:14px}
+.tw{overflow-x:auto}
+.ck{border:1px solid var(--warn);background:#fff;color:var(--warn);border-radius:99px;padding:5px 11px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+.ck[aria-pressed=true]{background:var(--g);border-color:var(--g);color:#fff}
+.sh{display:flex;width:100%;align-items:center;gap:10px;background:none;border:0;padding:0;text-align:left;cursor:pointer;color:var(--ink);font:inherit}
+.sh .tt{flex:1;min-width:0}
+.sh .tt b{display:block;font-size:15px}
+.sh .tt span{display:block;color:var(--mute);font-size:12.5px}
+.sh .cv{flex:none;transition:transform .15s;color:var(--mute);font-size:18px}
+.sh[aria-expanded=true] .cv{transform:rotate(90deg)}
+.sd{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+table.st{font-size:13px;margin-top:4px}
+table.st td small{color:var(--mute)}
+.line{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px}
+.lg{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.lg .wide{grid-column:1/-1}
+.lh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.lh label{margin:0}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+</head>
+<body class="viewer">
+<div class="wrap">
+  <div class="hd"><h1>Chia tiền cầu lông</h1><div id="auth"></div></div>
+  <p class="sub">Mỗi buổi: tiền sân + tiền cầu, chia đều cho người chơi.</p>
+  <div id="banner" class="banner" hidden></div>
+  <div id="importBox" class="banner" style="background:var(--g2);color:var(--g)" hidden></div>
+
+  <div class="cols">
+  <div class="card">
+    <h2 id="formTitle">Thêm buổi chơi</h2>
+    <div class="grid">
+      <div><label for="date">Ngày chơi</label><input type="date" id="date"></div>
+      <div><label for="note">Ghi chú (tên sân, địa điểm)</label><input type="text" id="note" placeholder="VD: Sân Cầu Giấy" maxlength="80"></div>
+
+      <div><label for="n160">Số sân giá 160.000đ / 2 giờ</label>
+        <div class="step"><button type="button" data-step="n160" data-d="-1" aria-label="Giảm">−</button><input type="number" id="n160" min="0" step="1" value="0" inputmode="numeric"><button type="button" data-step="n160" data-d="1" aria-label="Tăng">+</button></div></div>
+      <div><label for="n240">Số sân giá 240.000đ / 2 giờ</label>
+        <div class="step"><button type="button" data-step="n240" data-d="-1" aria-label="Giảm">−</button><input type="number" id="n240" min="0" step="1" value="1" inputmode="numeric"><button type="button" data-step="n240" data-d="1" aria-label="Tăng">+</button></div></div>
+
+      <div class="full">
+        <div class="lh"><label style="margin:0">Cầu đã dùng</label><button type="button" class="btn s sm" id="addLine">+ Thêm nguồn cầu</button></div>
+        <div id="lines"></div>
+        <div class="hint">Mỗi dòng là một ống cầu. Chọn người ứng tiền mua cầu hoặc người cho dùng cầu để tính tiền hoàn lại cho họ.</div>
+      </div>
+
+      <div class="full">
+        <div class="lh"><label style="margin:0">Ai chơi buổi này?</label><button type="button" class="btn s sm" id="allP">Chọn tất cả</button></div>
+        <div class="chips" id="chips"></div>
+        <div class="row" style="margin-top:10px"><input type="text" id="gname" placeholder="Khách ngoài danh sách, bấm Enter" maxlength="40" autocomplete="off"><button type="button" class="btn s" id="addG">Thêm khách</button></div>
+        <div class="chips" id="gchips" style="margin-top:8px"></div>
+      </div>
+    </div>
+    <label class="chk"><input type="checkbox" id="round" checked> Làm tròn lên 1.000đ mỗi người (phần dư vào quỹ)</label>
+
+    <div class="result" aria-live="polite">
+      <div class="hint" style="margin:0 0 2px;color:var(--g)">Mỗi người trả</div>
+      <div class="big" id="per">—</div>
+      <div class="bk" id="bk"></div>
+    </div>
+    <div class="bar">
+      <button type="button" class="btn p" id="save">Lưu buổi chơi</button>
+      <button type="button" class="btn s" id="cancel" hidden>Huỷ sửa</button>
+    </div>
+    <div class="hint" id="msg"></div>
+  </div>
+
+  <div class="card">
+    <div class="top"><h2 style="margin:0">Lịch sử từng buổi</h2><select id="month" aria-label="Lọc theo tháng"></select></div>
+    <div class="row" style="margin-bottom:10px"><button type="button" class="btn s sm" id="expandAll">Mở tất cả</button><button type="button" class="btn s sm" id="collapseAll">Thu tất cả</button></div>
+    <div id="list"></div>
+  </div>
+
+  </div>
+
+  <div class="card">
+    <h2>Tổng kết theo tháng đang chọn</h2>
+    <div id="sum"></div>
+  </div>
+  <div class="card">
+    <h2>Tổng kết đến hiện tại</h2>
+    <div id="sumAll"></div>
+    <div class="hint">Gồm tất cả các buổi. NA ứng tiền sân mỗi buổi; ai cho dùng cầu thì được tính tiền cầu đã ứng. Bấm "Chưa CK" trong từng buổi khi người đó đã chuyển khoản, bảng này tự cập nhật. "Nhận" là số tiền người khác cần hoàn cho người đó, tăng/giảm theo số người đã CK.</div>
+  </div>
+
+</div>
+
+<script>
+// ===== CẤU HÌNH (điền theo hướng dẫn) =====
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDCApQJuTBOt5Z5lAw96-tPch4MGqOKS-k",
+  authDomain: "badminton-25771.firebaseapp.com",
+  projectId: "badminton-25771",
+  storageBucket: "badminton-25771.firebasestorage.app",
+  messagingSenderId: "984999132889",
+  appId: "1:984999132889:web:4573691431a9445680c8c8"
+};
+// Quyền sửa dữ liệu do Firestore Rules quyết định (chỉ email chủ ghi được). Để trống để không lộ email trong file công khai.
+const OWNER_EMAIL = '';
+// ===========================================
+const OLD_SESSIONS = [{"id": "wz3zyr3ihmq9r5t4wlvw", "court": 160000, "createdAt": 1794759203820, "date": "2026-10-23", "n160": 1, "n240": 0, "note": "Sân Trịnh Văn Bô", "paid": [], "players": ["Quách", "Giang", "Trung"], "round": true, "shuttleLines": [{"shuttles": 3, "tubePrice": 307000, "tubeSize": 12, "who": "Quách"}]}, {"id": "e6ljw1oy2shn8e72s701", "court": 240000, "createdAt": 1794759412675, "date": "2026-10-31", "n160": 0, "n240": 1, "note": "Sân tiểu học Mỹ Đình", "paid": [], "players": ["NA", "Lê", "Trường", "Giang", "Trung"], "round": true, "shuttleLines": [{"shuttles": 4, "tubePrice": 112000, "tubeSize": 4, "who": "Trường"}]}, {"id": "biie7ya28lkfjd1yeqz7", "court": 240000, "createdAt": 1794759772256, "date": "2026-11-08", "n160": 0, "n240": 1, "note": "Sân tiểu học Mỹ Đình", "paid": [], "players": ["NA", "Quách", "Lê", "Giang", "Trung", "Bảo", "Dũng"], "round": true, "shuttleLines": [{"shuttles": 2, "tubePrice": 307000, "tubeSize": 12, "who": "Quách"}, {"shuttles": 3, "tubePrice": 307000, "tubeSize": 12, "who": "Giang"}]}, {"id": "7ctkzv0xhw76t0k7qf4n", "court": 480000, "createdAt": 1794759931174, "date": "2026-11-15", "n160": 0, "n240": 2, "note": "Sân tiểu học Mỹ Đình", "paid": [], "players": ["NA", "Quách", "Dương", "Lê", "Giang", "Trung", "Nhi", "Dũng", "Bạn Dũng", "Chi", "Chị Huyền", "A Vinh", "A Vịnh"], "round": true, "shuttleLines": [{"shuttles": 5, "tubePrice": 307000, "tubeSize": 12, "who": "Quách"}]}];
+let isOwner = false, auth = null, userEmail = '';
+const $ = id => document.getElementById(id);
+const fmt = n => Math.round(n).toLocaleString('vi-VN') + 'đ';
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const WD = ['CN','T2','T3','T4','T5','T6','T7'];
+const PLAYERS = ['NA','Quách','Dương','Lê','Trường','Giang','Trung'];
+const P160 = 160000, P240 = 240000, PAYER = 'NA'; // NA luôn là người trả tiền sân
+const today = () => { const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const fmtDate = s => { const [y,m,d] = s.split('-').map(Number); return WD[new Date(y,m-1,d).getDay()]+', '+String(d).padStart(2,'0')+'/'+String(m).padStart(2,'0')+'/'+y; };
+
+let db = null, sessions = [], editingId = null, players = [], guests = [], lines = [], defaultTube = { price: '', size: 12 };
+let month = today().slice(0,7), armDel = null, armTimer = null, loaded = false;
+const num = id => Math.max(0, parseFloat($(id).value) || 0);
+const lineCost = l => (+l.shuttles || 0) * ((+l.tubePrice || 0) / Math.max(1, +l.tubeSize || 12));
+const newLine = () => ({ who: '', shuttles: '', tubePrice: defaultTube.price, tubeSize: defaultTube.size });
+
+// Tính tiền 1 buổi. Hỗ trợ cả định dạng cũ (1 ống cầu; giờ × giá/giờ).
+function calc(s) {
+  const court = s.court !== undefined ? s.court : (s.fields||0) * (s.hours||0) * (s.courtPrice||0);
+  let shuttle, qty;
+  if (s.shuttleLines) { shuttle = s.shuttleLines.reduce((a,l) => a + lineCost(l), 0); qty = s.shuttleLines.reduce((a,l) => a + (+l.shuttles||0), 0); }
+  else { qty = s.shuttles || 0; shuttle = qty * (s.tubePrice !== undefined ? s.tubePrice / (s.tubeSize || 12) : (s.shuttlePrice || 0)); }
+  const total = court + shuttle;
+  const n = (s.players && s.players.length) || s.count || 0;
+  const raw = n ? total / n : 0;
+  const per = s.round ? Math.ceil(raw / 1000 - 1e-9) * 1000 : Math.round(raw);
+  return { court, qty, unit: qty ? shuttle / qty : 0, shuttle, total, n, per, surplus: per * n - total };
+}
+
+function formState() {
+  const n160 = Math.floor(num('n160')), n240 = Math.floor(num('n240'));
+  return { n160, n240, court: n160 * P160 + n240 * P240,
+    shuttleLines: lines.filter(l => +l.shuttles > 0).map(l => ({ who: l.who || '', shuttles: +l.shuttles, tubePrice: +l.tubePrice || 0, tubeSize: Math.max(1, Math.floor(+l.tubeSize) || 12) })),
+    round: $('round').checked, players: PLAYERS.filter(p => players.includes(p)).concat(guests) };
+}
+
+function renderResult() {
+  const s = formState(), c = calc(s);
+  $('per').textContent = c.n ? fmt(c.per) : '—';
+  const rows = [
+    ['Tiền sân ('+s.n160+' × 160k + '+s.n240+' × 240k)', fmt(c.court)],
+    ['Tiền cầu ('+c.qty+' quả)', fmt(c.shuttle)],
+    ['Tổng chi phí', fmt(c.total), 't'],
+    ['Số người chơi', String(c.n)]
+  ];
+  if (s.round && c.surplus > 0) rows.push(['Phần dư do làm tròn', fmt(c.surplus)]);
+  if (c.court) rows.push(['Hoàn lại cho '+PAYER+' (tiền sân)', fmt(c.court)]);
+  const adv = {};
+  s.shuttleLines.forEach(l => { if (l.who) adv[l.who] = (adv[l.who]||0) + lineCost(l); });
+  Object.keys(adv).forEach(w => rows.push(['Hoàn lại cho '+w+' (tiền cầu)', fmt(adv[w])]));
+  $('bk').innerHTML = rows.map(r => '<span class="'+(r[2]||'')+'">'+esc(r[0])+'</span><span class="'+(r[2]||'')+'">'+esc(r[1])+'</span>').join('');
+  $('allP').textContent = PLAYERS.every(p => players.includes(p)) ? 'Bỏ chọn' : 'Chọn tất cả';
+}
+
+function renderChips() {
+  $('chips').innerHTML = PLAYERS.map(p => '<button type="button" class="pp" aria-pressed="'+players.includes(p)+'" data-tp="'+esc(p)+'">'+esc(p)+'</button>').join('');
+  $('gchips').innerHTML = guests.map((g,i) => '<button type="button" class="pp" aria-pressed="true" data-rg="'+i+'" title="Bấm để bỏ">'+esc(g)+' (khách) ×</button>').join('');
+  renderLines();
+}
+
+function renderLines() {
+  const who = PLAYERS.concat(guests);
+  $('lines').innerHTML = lines.map((l,i) => '<div class="line"><div class="lg">'
+    + '<div class="wide"><label>Người ứng tiền / cho dùng cầu</label><select data-li="'+i+'" data-f="who"><option value="">Không ai (cầu chung)</option>'
+    + who.map(w => '<option value="'+esc(w)+'"'+(l.who===w?' selected':'')+'>'+esc(w)+'</option>').join('')+'</select></div>'
+    + '<div><label>Số quả đã dùng</label><input type="number" min="0" step="1" inputmode="numeric" data-li="'+i+'" data-f="shuttles" value="'+esc(l.shuttles)+'" placeholder="0"></div>'
+    + '<div><label>Giá ống (đ)</label><input type="number" min="0" step="1000" inputmode="numeric" data-li="'+i+'" data-f="tubePrice" value="'+esc(l.tubePrice)+'" placeholder="VD: 264000"></div>'
+    + '<div><label>Số quả / ống</label><input type="number" min="1" step="1" inputmode="numeric" data-li="'+i+'" data-f="tubeSize" value="'+esc(l.tubeSize)+'"></div>'
+    + (lines.length > 1 ? '<div style="align-self:end;text-align:right"><button type="button" class="btn d sm" data-rmline="'+i+'">Xoá dòng</button></div>' : '')
+    + '</div></div>').join('');
+  renderResult();
+}
+
+function addGuest(raw) {
+  const n = raw.trim(); $('gname').value = '';
+  if (!n) return;
+  const fixed = PLAYERS.find(p => p.toLowerCase() === n.toLowerCase());
+  if (fixed) { if (!players.includes(fixed)) players.push(fixed); }
+  else if (!guests.some(g => g.toLowerCase() === n.toLowerCase())) guests.push(n);
+  renderChips();
+}
+
+function renderMonths() {
+  const set = new Set(sessions.map(s => s.date.slice(0,7))); set.add(today().slice(0,7));
+  const ms = [...set].sort().reverse();
+  if (month !== 'all' && !set.has(month)) month = ms[0];
+  $('month').innerHTML = '<option value="all">Tất cả</option>' + ms.map(m => '<option value="'+m+'">Tháng '+m.slice(5)+'/'+m.slice(0,4)+'</option>').join('');
+  $('month').value = month;
+}
+
+const inMonth = () => sessions.filter(s => month === 'all' || s.date.startsWith(month));
+
+function courtText(s) {
+  if (s.n160 === undefined) return (s.fields||0)+' sân × '+(s.hours||0)+'h';
+  const parts = [];
+  if (s.n160) parts.push(s.n160+' sân 160k');
+  if (s.n240) parts.push(s.n240+' sân 240k');
+  return parts.join(' + ') || '0 sân';
+}
+
+function advText(s) {
+  const parts = ['Sân do '+PAYER+' trả: '+fmt(calc(s).court)];
+  (s.shuttleLines||[]).filter(l => l.who && l.shuttles).forEach(l => parts.push('Cầu của '+l.who+': '+l.shuttles+' quả, '+fmt(lineCost(l))));
+  return parts.join(' · ');
+}
+
+// Quyết toán 1 buổi: ròng = đã ứng − phải trả. Ròng âm = người cần CK (bấm "Đã CK"); ròng dương = người được nhận lại.
+// Người được nhận lại nhận theo tỉ lệ tiền đã CK / tổng tiền cần CK của buổi đó.
+function settle(s) {
+  const c = calc(s), paid = s.paid || [], rows = {};
+  const row = n => rows[n] || (rows[n] = { name: n, att: false, per: 0, adv: 0 });
+  (s.players || []).forEach(p => { const r = row(p); r.att = true; r.per = c.per; });
+  if (c.court) row(PAYER).adv += c.court;
+  (s.shuttleLines || []).forEach(l => { if (l.who) row(l.who).adv += lineCost(l); });
+  const list = Object.values(rows);
+  let D = 0, P = 0;
+  list.forEach(r => { r.net = r.adv - r.per; if (r.net < -0.5) { D += -r.net; if (paid.includes(r.name)) P += -r.net; } });
+  const ratio = D > 0 ? P / D : 1;
+  list.forEach(r => {
+    if (r.net < -0.5) { r.role = 'debtor'; r.settled = paid.includes(r.name) ? -r.net : 0; r.remain = -r.net - r.settled; }
+    else if (r.net > 0.5) { r.role = 'creditor'; r.settled = r.net * ratio; r.remain = -(r.net - r.settled); }
+    else { r.role = 'even'; r.settled = 0; r.remain = 0; }
+  });
+  const ord = n => { const i = PLAYERS.indexOf(n); return i < 0 ? 99 : i; };
+  list.sort((x, y) => ord(x.name) - ord(y.name) || x.name.localeCompare(y.name, 'vi'));
+  return { c, rows: list, toCollect: list.reduce((a, r) => a + (r.remain > 0.5 ? r.remain : 0), 0),
+    debtors: list.filter(r => r.role === 'debtor').length, done: list.filter(r => r.role === 'debtor' && r.remain < 0.5).length };
+}
+
+const remainCell = r => r.remain > 0.5 ? '<td class="owe">Nợ '+fmt(r.remain)+'</td>' : r.remain < -0.5 ? '<td class="ok">Nhận '+fmt(-r.remain)+'</td>' : '<td class="ok">Đủ</td>';
+
+const openIds = new Set();
+
+function renderList() {
+  const list = inMonth();
+  if (!loaded && db) { $('list').innerHTML = '<div class="empty">Đang tải…</div>'; return; }
+  const isOpen = s => openIds.has(s.id);
+  $('expandAll').disabled = !list.length || !list.every(s => !isOpen(s));
+  $('collapseAll').disabled = !list.some(isOpen);
+  if (!list.length) { $('list').innerHTML = '<div class="empty">Chưa có buổi chơi nào.</div>'; return; }
+  $('list').innerHTML = list.map(s => {
+    const st = settle(s), c = st.c, open = isOpen(s);
+    const tb = '<div class="tw"><table class="st"><thead><tr><th>Tên</th><th>Phải trả</th><th>Đã ứng</th><th>Chuyển khoản</th><th>Còn lại</th></tr></thead><tbody>'
+      + st.rows.map(r => {
+        const ck = r.role === 'debtor'
+          ? '<button type="button" class="ck" aria-pressed="'+(r.remain < 0.5)+'" data-paid="'+esc(s.id)+'" data-p="'+esc(r.name)+'">'+(r.remain < 0.5 ? 'Đã CK' : 'Chưa CK')+' · '+fmt(-r.net)+'</button>'
+          : '—';
+        return '<tr><td>'+esc(r.name)+(r.att && !PLAYERS.includes(r.name) ? ' <small>(khách)</small>' : '')+'</td><td>'+(r.att ? fmt(r.per) : '—')+'</td><td>'+(r.adv ? fmt(r.adv) : '—')+'</td><td>'+ck+'</td>'+remainCell(r)+'</tr>';
+      }).join('') + '</tbody></table></div>';
+    const detail = '<div class="sd" id="d-'+esc(s.id)+'">'
+      +'<div class="meta">'+esc(courtText(s))+' · '+c.qty+' quả cầu · '+c.n+' người</div>'
+      +'<div class="meta" style="margin-top:-4px">'+esc(advText(s))+'</div>'
+      +'<div class="nums"><div><b>'+fmt(c.per)+'</b><small>mỗi người</small></div><div><b>'+fmt(c.total)+'</b><small>tổng chi phí</small></div>'
+      +'<div><b>'+st.done+'/'+st.debtors+'</b><small>người đã CK</small></div><div><b>'+fmt(st.toCollect)+'</b><small>còn phải thu</small></div></div>'
+      + tb
+      +'<div class="acts"><button type="button" class="btn s sm" data-edit="'+esc(s.id)+'">Sửa</button>'
+      +'<button type="button" class="btn d sm'+(armDel===s.id?' arm':'')+'" data-del="'+esc(s.id)+'">'+(armDel===s.id?'Bấm lần nữa để xoá':'Xoá')+'</button></div></div>';
+    return '<div class="sess"><button type="button" class="sh" data-tg="'+esc(s.id)+'" aria-expanded="'+open+'" aria-controls="d-'+esc(s.id)+'">'
+      +'<span class="tt"><b>'+esc(fmtDate(s.date))+(s.note?' · '+esc(s.note):'')+'</b><span>'+fmt(c.per)+'/người · tổng '+fmt(c.total)+' · '+st.done+'/'+st.debtors+' đã CK</span></span><span class="cv" aria-hidden="true">›</span></button>'
+      + (open ? detail : '') + '</div>';
+  }).join('');
+}
+
+function summaryHtml(list) {
+  const agg = {};
+  const get = p => agg[p] || (agg[p] = { n: 0, owe: 0, adv: 0, settled: 0, remain: 0 });
+  PLAYERS.forEach(get);
+  let total = 0, collect = 0;
+  list.forEach(s => {
+    const st = settle(s); total += st.c.total; collect += st.toCollect;
+    st.rows.forEach(r => { const a = get(r.name); if (r.att) { a.n++; a.owe += r.per; } a.adv += r.adv; a.settled += r.settled; a.remain += r.remain; });
+  });
+  const names = Object.keys(agg).sort((a,b) => agg[b].remain - agg[a].remain || (PLAYERS.indexOf(a)+1||99) - (PLAYERS.indexOf(b)+1||99));
+  return '<div class="nums" style="display:flex;gap:22px;flex-wrap:wrap;margin-bottom:10px"><div><b style="font-size:18px;display:block">'+list.length+'</b><small class="hint">buổi chơi</small></div>'
+    + '<div><b style="font-size:18px;display:block">'+fmt(total)+'</b><small class="hint">tổng chi phí sân + cầu</small></div>'
+    + '<div><b style="font-size:18px;display:block;color:var(--warn)">'+fmt(collect)+'</b><small class="hint">còn phải thu</small></div></div>'
+    + '<div class="tw"><table><thead><tr><th>Tên</th><th>Số buổi</th><th>Phải trả</th><th>Đã ứng</th><th>Đã CK / nhận</th><th>Còn lại</th></tr></thead><tbody>'
+    + names.map(p => { const a = agg[p], d = Math.round(a.remain);
+      const cell = d > 0 ? '<td class="owe">Nợ '+fmt(d)+'</td>' : d < 0 ? '<td class="ok">Nhận '+fmt(-d)+'</td>' : '<td class="ok">'+((a.n||a.adv)?'Đủ':'—')+'</td>';
+      return '<tr><td>'+esc(p)+'</td><td>'+a.n+'</td><td>'+fmt(a.owe)+'</td><td>'+(a.adv?fmt(a.adv):'—')+'</td><td>'+fmt(a.settled)+'</td>'+cell+'</tr>'; }).join('')
+    + '</tbody></table></div>';
+}
+
+function renderSum() {
+  $('sumAll').innerHTML = summaryHtml(sessions);
+  $('sum').innerHTML = summaryHtml(inMonth());
+}
+
+function renderAll() { renderMonths(); renderList(); renderSum(); }
+
+function setMsg(t, bad) { $('msg').textContent = t; $('msg').style.color = bad ? 'var(--red)' : 'var(--g)'; if (t) setTimeout(() => { if ($('msg').textContent === t) $('msg').textContent = ''; }, 4000); }
+
+function resetForm(keepPrice) {
+  editingId = null; players = []; guests = []; lines = [newLine()];
+  $('date').value = today(); $('note').value = '';
+  $('n160').value = 0; $('n240').value = 1; $('round').checked = true;
+  $('formTitle').textContent = 'Thêm buổi chơi'; $('save').textContent = 'Lưu buổi chơi'; $('cancel').hidden = true;
+  renderChips();
+}
+
+async function persist(id, data) {
+  if (db) { await db.doc('sessions/'+id).set(data); }
+  else {
+    const i = sessions.findIndex(s => s.id === id), row = Object.assign({ id }, data);
+    if (i >= 0) sessions[i] = row; else sessions.push(row);
+    sessions.sort((a,b) => b.date.localeCompare(a.date));
+    renderAll();
+  }
+}
+
+$('save').onclick = async () => {
+  const f = formState();
+  if (!$('date').value) return setMsg('Chọn ngày chơi.', true);
+  if (!f.n160 && !f.n240) return setMsg('Nhập số sân đã thuê.', true);
+  if (!f.players.length) return setMsg('Chọn ít nhất 1 người chơi.', true);
+  if (f.shuttleLines.some(l => !l.tubePrice)) return setMsg('Nhập giá ống cầu cho các dòng có cầu đã dùng.', true);
+  const old = sessions.find(s => s.id === editingId);
+  const data = Object.assign({}, f, { date: $('date').value, note: $('note').value.trim(),
+    paid: old ? (old.paid||[]).filter(p => f.players.includes(p)) : [], createdAt: old ? old.createdAt : Date.now() });
+  const id = editingId || (db ? db.collection('sessions').doc().id : 's' + Date.now());
+  $('save').disabled = true;
+  try {
+    await persist(id, data);
+    const last = f.shuttleLines[f.shuttleLines.length - 1];
+    if (last) {
+      defaultTube = { price: last.tubePrice, size: last.tubeSize };
+      if (db) { try { await db.doc('config/defaults').set({ tubePrice: last.tubePrice, tubeSize: last.tubeSize }); } catch (e) {} }
+    }
+    month = data.date.slice(0,7);
+    setMsg(editingId ? 'Đã cập nhật buổi chơi.' : 'Đã lưu buổi chơi.');
+    resetForm(true);
+    renderAll();
+  } catch (e) {
+    setMsg(e && (e.code === 'permission-denied' || e.code === 'invalid_argument') ? 'Không có quyền ghi. Hãy đăng nhập bằng tài khoản chủ.' : 'Không lưu được, thử lại sau.', true);
+  } finally { $('save').disabled = false; }
+};
+
+$('cancel').onclick = () => { resetForm(true); };
+$('allP').onclick = () => { players = players.length === PLAYERS.length ? [] : PLAYERS.slice(); renderChips(); };
+$('month').onchange = e => { month = e.target.value; renderList(); renderSum(); };
+['date','note','n160','n240','round'].forEach(id => $(id).addEventListener('input', renderResult));
+$('expandAll').onclick = () => { inMonth().forEach(x => openIds.add(x.id)); renderList(); };
+$('collapseAll').onclick = () => { openIds.clear(); renderList(); };
+$('addLine').onclick = () => { lines.push(newLine()); renderLines(); };
+$('addG').onclick = () => addGuest($('gname').value);
+$('gname').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addGuest($('gname').value); } });
+const onLine = e => {
+  const t = e.target; if (t.dataset.li === undefined) return;
+  lines[+t.dataset.li][t.dataset.f] = t.value; renderResult();
+};
+$('lines').addEventListener('input', onLine);
+$('lines').addEventListener('change', onLine);
+
+document.addEventListener('click', async e => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.id === 'signIn') {
+    try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); } catch (err) { setBanner('Đăng nhập không thành công: ' + (err.code || err.message)); }
+    return;
+  }
+  if (t.id === 'signOut') { await auth.signOut(); return; }
+  if (t.id === 'importOld') {
+    t.disabled = true;
+    try { for (const o of OLD_SESSIONS) { const d = Object.assign({}, o); delete d.id; await db.collection('sessions').doc(o.id).set(d); } }
+    catch (err) { setBanner('Không nhập được dữ liệu: ' + (err.code || err.message)); t.disabled = false; }
+    return;
+  }
+  if (t.dataset.step) {
+    const el = $(t.dataset.step), v = Math.max(0, (parseFloat(el.value)||0) + parseFloat(t.dataset.d));
+    el.value = v; renderResult();
+  } else if (t.dataset.tp) {
+    const p = t.dataset.tp; players = players.includes(p) ? players.filter(x => x !== p) : players.concat(p); renderChips();
+  } else if (t.dataset.tg) {
+    const id = t.dataset.tg; if (openIds.has(id)) openIds.delete(id); else openIds.add(id); renderList();
+  } else if (t.dataset.rg !== undefined) {
+    const g = guests[+t.dataset.rg]; guests.splice(+t.dataset.rg, 1);
+    lines.forEach(l => { if (l.who === g) l.who = ''; }); renderChips();
+  } else if (t.dataset.rmline !== undefined) {
+    lines.splice(+t.dataset.rmline, 1); renderLines();
+  } else if (t.dataset.edit) {
+    const s = sessions.find(x => x.id === t.dataset.edit); if (!s) return;
+    if (s.n160 === undefined) return setMsg('Buổi này dùng định dạng cũ, không sửa được. Hãy xoá và nhập lại.', true);
+    editingId = s.id;
+    players = (s.players||[]).filter(p => PLAYERS.includes(p)); guests = (s.players||[]).filter(p => !PLAYERS.includes(p));
+    lines = s.shuttleLines ? s.shuttleLines.map(l => ({ who: l.who||'', shuttles: l.shuttles, tubePrice: l.tubePrice, tubeSize: l.tubeSize }))
+      : (s.shuttles ? [{ who: '', shuttles: s.shuttles, tubePrice: s.tubePrice, tubeSize: s.tubeSize || 12 }] : []);
+    if (!lines.length) lines = [newLine()];
+    $('date').value = s.date; $('note').value = s.note||''; $('n160').value = s.n160; $('n240').value = s.n240; $('round').checked = !!s.round;
+    $('formTitle').textContent = 'Sửa buổi chơi'; $('save').textContent = 'Cập nhật'; $('cancel').hidden = false;
+    renderChips(); window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else if (t.dataset.del) {
+    const id = t.dataset.del;
+    if (armDel !== id) { armDel = id; clearTimeout(armTimer); armTimer = setTimeout(() => { armDel = null; renderList(); }, 3000); renderList(); return; }
+    armDel = null; clearTimeout(armTimer);
+    try {
+      if (db) await db.doc('sessions/'+id).delete();
+      else { sessions = sessions.filter(s => s.id !== id); renderAll(); }
+      if (editingId === id) resetForm(true);
+    } catch (err) { setMsg('Không xoá được.', true); renderList(); }
+  } else if (t.dataset.paid) {
+    const s = sessions.find(x => x.id === t.dataset.paid); if (!s) return;
+    const p = t.dataset.p, cur = s.paid || [];
+    const next = cur.includes(p) ? cur.filter(x => x !== p) : cur.concat(p);
+    try {
+      if (db) await db.doc('sessions/'+s.id).update({ paid: next });
+      else { s.paid = next; renderList(); renderSum(); }
+    } catch (err) { setMsg('Bạn chỉ có quyền xem, không thể đổi trạng thái.', true); }
+  }
+});
+
+// init
+resetForm(false);
+renderAll();
+
+function setBanner(t) { $('banner').hidden = !t; $('banner').textContent = t || ''; }
+
+function renderAuth() {
+  $('auth').innerHTML = !auth ? '' : isOwner
+    ? '<span>' + esc(userEmail) + '</span><button type="button" class="btn s sm" id="signOut">Đăng xuất</button>'
+    : '<button type="button" class="btn s sm" id="signIn">Đăng nhập (chủ)</button>';
+}
+
+function renderImport() {
+  const show = isOwner && db && loaded && !sessions.length;
+  $('importBox').hidden = !show;
+  if (show) $('importBox').innerHTML = 'Chưa có dữ liệu trên máy chủ. <button type="button" class="btn p sm" id="importOld" style="margin-left:8px">Nhập ' + OLD_SESSIONS.length + ' buổi đã có</button>';
+}
+
+function setOwner(v, email) {
+  isOwner = v; userEmail = email || '';
+  document.body.classList.toggle('viewer', !v);
+  renderAuth(); renderImport(); renderList();
+}
+
+(function init() {
+  if (!window.firebase || FIREBASE_CONFIG.apiKey.indexOf('PASTE') === 0) {
+    setBanner('Chưa cấu hình Firebase: điền FIREBASE_CONFIG và OWNER_EMAIL ở đầu phần script theo hướng dẫn.');
+    return;
+  }
+  firebase.initializeApp(FIREBASE_CONFIG);
+  db = firebase.firestore(); auth = firebase.auth();
+  auth.onAuthStateChanged(u => {
+    if (u && (!OWNER_EMAIL || u.email === OWNER_EMAIL)) setOwner(true, u.email);
+    else {
+      setOwner(false, '');
+      if (u) { setBanner('Tài khoản ' + u.email + ' không có quyền sửa.'); auth.signOut(); }
+    }
+  });
+  const timer = setTimeout(() => setBanner('Chưa tải được dữ liệu, có thể đang hiển thị dữ liệu cũ.'), 10000);
+  db.collection('sessions').orderBy('date', 'desc').limit(500).onSnapshot(snap => {
+    sessions = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+    loaded = true;
+    if (!snap.metadata.fromCache) { clearTimeout(timer); if ($('banner').textContent.indexOf('Chưa tải') === 0) setBanner(''); }
+    renderAll(); renderImport();
+  }, err => { clearTimeout(timer); loaded = true; setBanner('Không đọc được dữ liệu: ' + (err.code || err.message)); renderAll(); });
+  db.doc('config/defaults').get().then(d => {
+    if (d.exists) {
+      const v = d.data(); defaultTube = { price: v.tubePrice || '', size: v.tubeSize || 12 };
+      if (!editingId && lines.length === 1 && !lines[0].tubePrice) { lines[0].tubePrice = defaultTube.price; lines[0].tubeSize = defaultTube.size; renderLines(); }
+    }
+  }).catch(() => {});
+})();
+</script>
+</body>
+</html>

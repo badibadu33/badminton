@@ -138,10 +138,7 @@ table.st td small{color:var(--mute)}
       <div><label for="date">Ngày chơi</label><input type="date" id="date"></div>
       <div><label for="note">Ghi chú (tên sân, địa điểm)</label><input type="text" id="note" placeholder="VD: Sân Cầu Giấy" maxlength="80"></div>
 
-      <div><label for="n160">Số sân giá 160.000đ / 2 giờ</label>
-        <div class="step"><button type="button" data-step="n160" data-d="-1" aria-label="Giảm">−</button><input type="number" id="n160" min="0" step="1" value="0" inputmode="numeric"><button type="button" data-step="n160" data-d="1" aria-label="Tăng">+</button></div></div>
-      <div><label for="n240">Số sân giá 240.000đ / 2 giờ</label>
-        <div class="step"><button type="button" data-step="n240" data-d="-1" aria-label="Giảm">−</button><input type="number" id="n240" min="0" step="1" value="1" inputmode="numeric"><button type="button" data-step="n240" data-d="1" aria-label="Tăng">+</button></div></div>
+      <div class="full"><label for="court">Tiền sân (đ)</label><input type="number" id="court" min="0" step="1000" placeholder="VD: 240000" inputmode="numeric"><div class="hint">Nhập tổng tiền sân của buổi (tất cả các sân đã thuê).</div></div>
 
       <div class="full">
         <div class="lh"><label style="margin:0">Cầu đã dùng</label><button type="button" class="btn s sm" id="addLine">+ Thêm nguồn cầu</button></div>
@@ -218,7 +215,7 @@ const FIREBASE_CONFIG = {
 const OWNER_EMAIL = '';
 // ===========================================
 const OLD_SESSIONS = [{"id": "wz3zyr3ihmq9r5t4wlvw", "court": 160000, "createdAt": 1794759203820, "date": "2026-10-23", "n160": 1, "n240": 0, "note": "Sân Trịnh Văn Bô", "paid": [], "players": ["Quách", "Giang", "Trung"], "round": true, "shuttleLines": [{"shuttles": 3, "tubePrice": 307000, "tubeSize": 12, "who": "Quách"}]}, {"id": "e6ljw1oy2shn8e72s701", "court": 240000, "createdAt": 1794759412675, "date": "2026-10-31", "n160": 0, "n240": 1, "note": "Sân tiểu học Mỹ Đình", "paid": [], "players": ["NA", "Lê", "Trường", "Giang", "Trung"], "round": true, "shuttleLines": [{"shuttles": 4, "tubePrice": 112000, "tubeSize": 4, "who": "Trường"}]}, {"id": "biie7ya28lkfjd1yeqz7", "court": 240000, "createdAt": 1794759772256, "date": "2026-11-08", "n160": 0, "n240": 1, "note": "Sân tiểu học Mỹ Đình", "paid": [], "players": ["NA", "Quách", "Lê", "Giang", "Trung", "Bảo", "Dũng"], "round": true, "shuttleLines": [{"shuttles": 2, "tubePrice": 307000, "tubeSize": 12, "who": "Quách"}, {"shuttles": 3, "tubePrice": 307000, "tubeSize": 12, "who": "Giang"}]}, {"id": "7ctkzv0xhw76t0k7qf4n", "court": 480000, "createdAt": 1794759931174, "date": "2026-11-15", "n160": 0, "n240": 2, "note": "Sân tiểu học Mỹ Đình", "paid": [], "players": ["NA", "Quách", "Dương", "Lê", "Giang", "Trung", "Nhi", "Dũng", "Bạn Dũng", "Chi", "Chị Huyền", "A Vinh", "A Vịnh"], "round": true, "shuttleLines": [{"shuttles": 5, "tubePrice": 307000, "tubeSize": 12, "who": "Quách"}]}];
-let isOwner = false, auth = null, userEmail = '';
+let isOwner = false, auth = null, userEmail = '', defaultCourt = 240000;
 const $ = id => document.getElementById(id);
 const fmt = n => Math.round(n).toLocaleString('vi-VN') + 'đ';
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -248,8 +245,7 @@ function calc(s) {
 }
 
 function formState() {
-  const n160 = Math.floor(num('n160')), n240 = Math.floor(num('n240'));
-  return { n160, n240, court: n160 * P160 + n240 * P240,
+  return { court: Math.round(num('court')),
     shuttleLines: lines.filter(l => +l.shuttles > 0).map(l => ({ who: l.who || '', shuttles: +l.shuttles, tubePrice: +l.tubePrice || 0, tubeSize: Math.max(1, Math.floor(+l.tubeSize) || 12) })),
     round: $('round').checked, players: PLAYERS.filter(p => players.includes(p)).concat(guests) };
 }
@@ -258,7 +254,7 @@ function renderResult() {
   const s = formState(), c = calc(s);
   $('per').textContent = c.n ? fmt(c.per) : '—';
   const rows = [
-    ['Tiền sân ('+s.n160+' × 160k + '+s.n240+' × 240k)', fmt(c.court)],
+    ['Tiền sân', fmt(c.court)],
     ['Tiền cầu ('+c.qty+' quả)', fmt(c.shuttle)],
     ['Tổng chi phí', fmt(c.total), 't'],
     ['Số người chơi', String(c.n)]
@@ -311,7 +307,7 @@ function renderMonths() {
 const inMonth = () => sessions.filter(s => month === 'all' || s.date.startsWith(month));
 
 function courtText(s) {
-  if (s.n160 === undefined) return (s.fields||0)+' sân × '+(s.hours||0)+'h';
+  if (s.n160 === undefined) return s.court !== undefined ? 'Tiền sân '+fmt(s.court) : (s.fields||0)+' sân × '+(s.hours||0)+'h';
   const parts = [];
   if (s.n160) parts.push(s.n160+' sân 160k');
   if (s.n240) parts.push(s.n240+' sân 240k');
@@ -442,7 +438,7 @@ function setMsg(t, bad) { $('msg').textContent = t; $('msg').style.color = bad ?
 function resetForm(keepPrice) {
   editingId = null; players = []; guests = []; lines = [newLine()];
   $('date').value = today(); $('note').value = '';
-  $('n160').value = 0; $('n240').value = 1; $('round').checked = true;
+  $('court').value = defaultCourt; $('round').checked = true;
   $('formTitle').textContent = 'Thêm buổi chơi'; $('save').textContent = 'Lưu buổi chơi'; $('cancel').hidden = true;
   renderChips();
 }
@@ -460,21 +456,22 @@ async function persist(id, data) {
 $('save').onclick = async () => {
   const f = formState();
   if (!$('date').value) return setMsg('Chọn ngày chơi.', true);
-  if (!f.n160 && !f.n240) return setMsg('Nhập số sân đã thuê.', true);
+  if (!f.court) return setMsg('Nhập tiền sân.', true);
   if (!f.players.length) return setMsg('Chọn ít nhất 1 người chơi.', true);
   if (f.shuttleLines.some(l => !l.tubePrice)) return setMsg('Nhập giá ống cầu cho các dòng có cầu đã dùng.', true);
   const old = sessions.find(s => s.id === editingId);
-  const data = Object.assign({}, f, { date: $('date').value, note: $('note').value.trim(),
+  // Buổi cũ nhập theo số sân 160k/240k: giữ nguyên nhãn đó nếu tiền sân không đổi.
+  const keep = old && old.n160 !== undefined && f.court === old.court ? { n160: old.n160, n240: old.n240 } : {};
+  const data = Object.assign({}, f, keep, { date: $('date').value, note: $('note').value.trim(),
     paid: old ? (old.paid||[]).filter(p => f.players.includes(p)) : [], createdAt: old ? old.createdAt : Date.now() });
   const id = editingId || (db ? db.collection('sessions').doc().id : 's' + Date.now());
   $('save').disabled = true;
   try {
     await persist(id, data);
     const last = f.shuttleLines[f.shuttleLines.length - 1];
-    if (last) {
-      defaultTube = { price: last.tubePrice, size: last.tubeSize };
-      if (db) { try { await db.doc('config/defaults').set({ tubePrice: last.tubePrice, tubeSize: last.tubeSize }); } catch (e) {} }
-    }
+    if (last) defaultTube = { price: last.tubePrice, size: last.tubeSize };
+    defaultCourt = f.court;
+    if (db) { try { await db.doc('config/defaults').set({ tubePrice: defaultTube.price || 0, tubeSize: defaultTube.size || 12, court: f.court }); } catch (e) {} }
     month = data.date.slice(0,7);
     setMsg(editingId ? 'Đã cập nhật buổi chơi.' : 'Đã lưu buổi chơi.');
     resetForm(true);
@@ -487,7 +484,7 @@ $('save').onclick = async () => {
 $('cancel').onclick = () => { resetForm(true); };
 $('allP').onclick = () => { players = players.length === PLAYERS.length ? [] : PLAYERS.slice(); renderChips(); };
 $('month').onchange = e => { month = e.target.value; renderList(); renderSum(); };
-['date','note','n160','n240','round'].forEach(id => $(id).addEventListener('input', renderResult));
+['date','note','court','round'].forEach(id => $(id).addEventListener('input', renderResult));
 $('expandAll').onclick = () => { inMonth().forEach(x => openIds.add(x.id)); renderList(); };
 $('collapseAll').onclick = () => { openIds.clear(); renderList(); };
 $('addLine').onclick = () => { lines.push(newLine()); renderLines(); };
@@ -533,13 +530,12 @@ document.addEventListener('click', async e => {
     lines.splice(+t.dataset.rmline, 1); renderLines();
   } else if (t.dataset.edit) {
     const s = sessions.find(x => x.id === t.dataset.edit); if (!s) return;
-    if (s.n160 === undefined) return setMsg('Buổi này dùng định dạng cũ, không sửa được. Hãy xoá và nhập lại.', true);
     editingId = s.id;
     players = (s.players||[]).filter(p => PLAYERS.includes(p)); guests = (s.players||[]).filter(p => !PLAYERS.includes(p));
     lines = s.shuttleLines ? s.shuttleLines.map(l => ({ who: l.who||'', shuttles: l.shuttles, tubePrice: l.tubePrice, tubeSize: l.tubeSize }))
       : (s.shuttles ? [{ who: '', shuttles: s.shuttles, tubePrice: s.tubePrice, tubeSize: s.tubeSize || 12 }] : []);
     if (!lines.length) lines = [newLine()];
-    $('date').value = s.date; $('note').value = s.note||''; $('n160').value = s.n160; $('n240').value = s.n240; $('round').checked = !!s.round;
+    $('date').value = s.date; $('note').value = s.note||''; $('court').value = calc(s).court; $('round').checked = !!s.round;
     $('formTitle').textContent = 'Sửa buổi chơi'; $('save').textContent = 'Cập nhật'; $('cancel').hidden = false;
     renderChips(); window.scrollTo({ top: 0, behavior: 'smooth' });
   } else if (t.dataset.del) {
@@ -610,6 +606,7 @@ function setOwner(v, email) {
   db.doc('config/defaults').get().then(d => {
     if (d.exists) {
       const v = d.data(); defaultTube = { price: v.tubePrice || '', size: v.tubeSize || 12 };
+      if (v.court) { if (!editingId && +$('court').value === defaultCourt) $('court').value = v.court; defaultCourt = v.court; renderResult(); }
       if (!editingId && lines.length === 1 && !lines[0].tubePrice) { lines[0].tubePrice = defaultTube.price; lines[0].tubeSize = defaultTube.size; renderLines(); }
     }
   }).catch(() => {});

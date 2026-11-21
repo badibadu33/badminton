@@ -192,7 +192,7 @@ body.viewer .owner-only{display:none!important}
 .ell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cols>*,.sess{min-width:0}
 .sub{display:none}
-#meBox select{width:100%}
+#meBox .gsel{width:auto}
 .me-h{font-weight:700;margin-bottom:8px}
 .card.me.warn{background:var(--warn2);color:var(--warn);border-color:transparent}
 .card.me.ok{background:var(--g2);color:var(--g);border-color:transparent}
@@ -206,6 +206,8 @@ body.viewer .owner-only{display:none!important}
   .hm{display:none}
   td .sub{display:block;font-size:12px;font-weight:400;color:var(--mute)}
 }
+.gsel{width:auto;max-width:100%;border:1px solid var(--line);border-radius:99px;padding:7px 12px;font:inherit;font-size:13px;font-weight:600;background:#fff;color:var(--ink);cursor:pointer}
+.gsel.on{background:var(--g);border-color:var(--g);color:#fff}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -521,17 +523,17 @@ function ckBtn(s, r) {
   return '';
 }
 // ----- Thẻ tóm tắt cho người xem: chọn tên một lần, web nhớ trên máy -----
-let me = null, meGuestMode = false, meOpen = false;
+let me = null, meOpen = false;
 try { me = JSON.parse(localStorage.getItem('shuttlers_me') || 'null'); } catch (e) {}
 const saveMe = () => { try { if (me) localStorage.setItem('shuttlers_me', JSON.stringify(me)); else localStorage.removeItem('shuttlers_me'); } catch (e) {} };
 function renderMe() {
   const box = $('meBox'), hide = isOwner || (!loaded && !!db);
   box.hidden = hide; if (hide) { box.innerHTML = ''; return; }
   if (!me) {
-    const gn = personNames().filter(n => !PLAYERS.includes(n)), opt = n => '<option value="' + esc(n) + '">' + esc(n) + '</option>';
+    const gn = personNames().filter(n => !PLAYERS.includes(n));
     box.className = 'card';
-    box.innerHTML = '<div class="me-h">Bạn là ai?</div><select id="meSel" aria-label="Chọn tên của bạn"><option value="" disabled' + (meGuestMode ? '' : ' selected') + '>Chọn tên của bạn</option>' + PLAYERS.map(opt).join('') + '<option value="__guest"' + (meGuestMode ? ' selected' : '') + '>Tôi là khách…</option></select>'
-      + (!meGuestMode ? '' : gn.length ? '<select id="meGuest" aria-label="Chọn tên khách" style="margin-top:8px"><option value="" disabled selected>Chọn tên khách</option>' + gn.map(opt).join('') + '</select>' : '<div class="hint">Chưa có khách nào trong dữ liệu.</div>');
+    box.innerHTML = '<div class="me-h">Chọn tên để xem tóm tắt</div><div class="pc">' + PLAYERS.map(n => '<button type="button" class="chip2" data-me="' + esc(n) + '">' + esc(n) + '</button>').join('')
+      + (gn.length ? '<select id="meGuest" class="gsel" aria-label="Chọn khách"><option value="" selected>Khách (' + gn.length + ')</option>' + gn.map(n => '<option value="' + esc(n) + '">' + esc(n) + '</option>').join('') + '</select>' : '') + '</div>';
     return;
   }
   const rows = [];
@@ -550,8 +552,8 @@ function renderMe() {
     + (det && meOpen ? '<div class="hint" id="meMsg" style="margin:6px 0 0"></div><div style="margin-top:8px">' + rows.map(({ s, r }) => '<div class="pi"><div class="t"><b>' + esc(fmtDateShort(s.date)) + (s.note ? ' · ' + esc(s.note) : '') + '</b><span>' + (r.att ? 'Phải trả ' + fmt(r.per) : 'Không chơi') + (r.adv ? ' · ứng ' + fmt(r.adv) : '') + '</span></div><div class="r">' + ckBtn(s, r) + remainText(me.name, r.remain) + '</div></div>').join('') + '</div>' : '');
 }
 document.addEventListener('change', e => {
-  if (e.target.id === 'meSel') { if (e.target.value === '__guest') { meGuestMode = true; } else { me = { name: e.target.value, guest: false }; saveMe(); } renderMe(); }
-  else if (e.target.id === 'meGuest') { me = { name: e.target.value, guest: true }; meGuestMode = false; saveMe(); renderMe(); }
+  if (e.target.id === 'meGuest') { if (!e.target.value) return; me = { name: e.target.value, guest: true }; saveMe(); renderMe(); }
+  else if (e.target.id === 'perGuest') { perSel = e.target.value || null; renderPer(); }
 });
 function renderClaims() {
   const box = $('claimBox');
@@ -567,7 +569,9 @@ function renderClaims() {
 function renderPer() {
   const names = personNames();
   if (perSel && !names.includes(perSel)) perSel = null;
-  $('perChips').innerHTML = names.map(n => '<button type="button" class="chip2" data-per="' + esc(n) + '" aria-pressed="' + (n === perSel) + '">' + esc(n) + '</button>').join('');
+  const gl = names.filter(n => !PLAYERS.includes(n)), gOn = !!perSel && gl.includes(perSel);
+  $('perChips').innerHTML = PLAYERS.map(n => '<button type="button" class="chip2" data-per="' + esc(n) + '" aria-pressed="' + (n === perSel) + '">' + esc(n) + '</button>').join('')
+    + (gl.length ? '<select id="perGuest" class="gsel' + (gOn ? ' on' : '') + '" aria-label="Chọn khách"><option value=""' + (gOn ? '' : ' selected') + '>Khách (' + gl.length + ')</option>' + gl.map(n => '<option value="' + esc(n) + '"' + (n === perSel ? ' selected' : '') + '>' + esc(n) + '</option>').join('') + '</select>' : '');
   const b = $('perBody');
   if (!loaded && db) { b.innerHTML = '<div class="empty">Đang tải dữ liệu…</div>'; return; }
   if (!perSel) { b.innerHTML = '<div class="empty">Chọn một người để xem tổng tiền và các buổi đã chơi.</div>'; return; }
@@ -845,7 +849,8 @@ document.addEventListener('click', async e => {
     if (!f.set.size) resetFilter(k);
     applyFilter(k); return;
   }
-  if (t.dataset.meclear !== undefined) { me = null; meGuestMode = false; meOpen = false; saveMe(); renderMe(); return; }
+  if (t.dataset.me !== undefined) { me = { name: t.dataset.me, guest: false }; saveMe(); renderMe(); return; }
+  if (t.dataset.meclear !== undefined) { me = null; meOpen = false; saveMe(); renderMe(); return; }
   if (t.dataset.medet !== undefined) { meOpen = !meOpen; renderMe(); return; }
   if (t.dataset.gadd !== undefined) { addGuest(t.dataset.gadd); return; }
   if (t.dataset.per !== undefined) { perSel = t.dataset.per; renderPer(); return; }

@@ -191,7 +191,7 @@ body.viewer .owner-only{display:none!important}
 
 .ell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cols>*,.sess{min-width:0}
-.sub{display:none}
+.tsub{display:none}
 #meBox .gsel{width:auto}
 .me-h{font-weight:700;margin-bottom:8px}
 .card.me.warn{background:var(--warn2);color:var(--warn);border-color:transparent}
@@ -204,7 +204,7 @@ body.viewer .owner-only{display:none!important}
   .top{flex-direction:column;align-items:stretch;gap:8px}
   .top .ms{width:100%}.top .ms .ms-b{flex:1}
   .hm{display:none}
-  td .sub{display:block;font-size:12px;font-weight:400;color:var(--mute)}
+  td .tsub{display:block;font-size:12px;font-weight:400;color:var(--mute)}
 }
 .gsel{width:auto;max-width:100%;border:1px solid var(--line);border-radius:99px;padding:7px 12px;font:inherit;font-size:13px;font-weight:600;background:#fff;color:var(--ink);cursor:pointer}
 .gsel.on{background:var(--g);border-color:var(--g);color:#fff}
@@ -667,7 +667,7 @@ function renderList() {
     const tb = '<div class="tw"><table class="st"><thead><tr><th>Tên</th><th class="hm">Phải trả</th><th class="hm">Đã ứng</th><th>Trạng thái</th></tr></thead><tbody>'
       + st.rows.map(r => {
         const stt = r.role === 'collector' ? remainText(r.name, r.remain) + ' <small>thu hộ</small>' : r.role === 'even' ? '<span class="pill ok">Đủ</span>' : ckStatic(s, r);
-        return '<tr><td>'+esc(r.name)+(r.att && !PLAYERS.includes(r.name) ? ' <small>(khách)</small>' : '')+(r.adv || !r.att ? '<small class="sub">'+(r.att ? '' : 'Không chơi')+(r.adv ? (r.att ? '' : ' · ')+'ứng '+fmt(r.adv) : '')+'</small>' : '')+'</td><td class="hm">'+(r.att ? fmt(r.per) : '—')+'</td><td class="hm">'+(r.adv ? fmt(r.adv) : '—')+'</td><td>'+stt+'</td></tr>';
+        return '<tr><td>'+esc(r.name)+(r.att && !PLAYERS.includes(r.name) ? ' <small>(khách)</small>' : '')+(r.adv || !r.att ? '<small class="tsub">'+(r.att ? '' : 'Không chơi')+(r.adv ? (r.att ? '' : ' · ')+'ứng '+fmt(r.adv) : '')+'</small>' : '')+'</td><td class="hm">'+(r.att ? fmt(r.per) : '—')+'</td><td class="hm">'+(r.adv ? fmt(r.adv) : '—')+'</td><td>'+stt+'</td></tr>';
       }).join('') + '</tbody></table></div>';
     const detail = '<div class="sd" id="d-'+esc(s.id)+'">'
       +(s.note?'<div class="meta" style="margin-top:0"><b>'+esc(s.note)+'</b></div>':'')
@@ -704,7 +704,7 @@ function summaryHtml(list) {
   const names = Object.keys(agg).sort((a,b) => key(b) - key(a) || (PLAYERS.indexOf(a)+1||99) - (PLAYERS.indexOf(b)+1||99));
   return '<div class="tw"><table><thead><tr><th>Tên</th><th class="hm">Số buổi</th><th class="hm">Phải trả</th><th class="hm">Đã ứng</th><th class="hm">Đã chuyển / nhận</th><th>Còn lại</th></tr></thead><tbody>'
     + names.map(p => { const a = agg[p];
-      return '<tr><td>'+esc(p)+'<small class="sub">'+a.n+' buổi · phải trả '+fmt(a.owe)+(a.adv?' · ứng '+fmt(a.adv):'')+(a.settled?' · đã chuyển/nhận '+fmt(a.settled):'')+'</small></td><td class="hm">'+a.n+'</td><td class="hm">'+fmt(a.owe)+'</td><td class="hm">'+(a.adv?fmt(a.adv):'—')+'</td><td class="hm">'+(a.settled?fmt(a.settled):'—')+'</td><td>'+((a.n||a.adv)?remainText(p, a.remain):'—')+'</td></tr>'; }).join('')
+      return '<tr><td>'+esc(p)+'<small class="tsub">'+a.n+' buổi · phải trả '+fmt(a.owe)+(a.adv?' · ứng '+fmt(a.adv):'')+(a.settled?' · đã chuyển/nhận '+fmt(a.settled):'')+'</small></td><td class="hm">'+a.n+'</td><td class="hm">'+fmt(a.owe)+'</td><td class="hm">'+(a.adv?fmt(a.adv):'—')+'</td><td class="hm">'+(a.settled?fmt(a.settled):'—')+'</td><td>'+((a.n||a.adv)?remainText(p, a.remain):'—')+'</td></tr>'; }).join('')
     + '</tbody></table></div>';
 }
 
